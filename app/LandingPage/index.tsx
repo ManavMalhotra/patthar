@@ -1,25 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Tab, Text, TabView } from "@rneui/themed";
 import { ListItem } from "@rneui/themed";
-import { View } from "react-native";
-import { Avatar, Icon } from "@rneui/base";
+import { TextInput, View } from "react-native";
+import { Avatar, Button, Icon, Overlay } from "@rneui/base";
 import { ListItemAccordion } from "@rneui/base/dist/ListItem/ListItem.Accordion";
 
 import { FAB } from "@rneui/themed";
+import { Link } from "expo-router";
 
 export default function Page() {
   const [index, setIndex] = React.useState(0);
 
-  const roomList = [
-    {
-      name: "Room 1",
-    },
-    {
-      name: "Room 2",
-    },
-  ];
-
-  const accordionItem = [
+  const [accordionItem, setAccordionItem] = useState([
     {
       title: "Rooms",
       item: [
@@ -42,10 +34,31 @@ export default function Page() {
         },
       ],
     },
-  ];
+  ]);
+
   const [expanded, setExpanded] = useState(
     new Array(accordionItem.length).fill(false)
   );
+
+  const [showOverlay, setShowOverlay] = useState(false);
+  const toggleOverlay = () => setShowOverlay(!showOverlay);
+
+  const [categoryName, setCategoryName] = useState("");
+  const addCategory = () => {
+    console.log("Category Name", categoryName);
+
+    const newAccordionItem = [...accordionItem];
+    newAccordionItem.push({
+      title: categoryName,
+      item: [],
+    });
+    setAccordionItem(newAccordionItem);
+    toggleOverlay();
+  };
+
+  useEffect(() => {
+    console.log("Accordion Item", accordionItem);
+  }, [accordionItem]);
 
   return (
     <>
@@ -81,21 +94,26 @@ export default function Page() {
                     }
                     isExpanded={expanded[i]}
                     onPress={() => {
-                      // Create a new array with the same values as the old expanded state
                       const newExpanded = [...expanded];
-                      // Toggle the expanded state for the current accordion item
                       newExpanded[i] = !newExpanded[i];
-                      // Update the expanded state
                       setExpanded(newExpanded);
                     }}
                   >
                     {l.item.map((item, i: React.Key) => (
-                      <ListItem key={i} bottomDivider>
-                        <ListItem.Content>
-                          <ListItem.Title>{item.title}</ListItem.Title>
-                        </ListItem.Content>
-                        <ListItem.Chevron />
-                      </ListItem>
+                      <Link href="/category/test" key={i}>
+                        <ListItem
+                          key={i}
+                          bottomDivider
+                          containerStyle={{
+                            paddingHorizontal: 32,
+                          }}
+                        >
+                          <ListItem.Content>
+                            <ListItem.Title>{item.title}</ListItem.Title>
+                          </ListItem.Content>
+                          <ListItem.Chevron />
+                        </ListItem>
+                      </Link>
                     ))}
                   </ListItem.Accordion>
                 ))}
@@ -108,11 +126,66 @@ export default function Page() {
           <Text h1>Favorite</Text>
         </TabView.Item>
       </TabView>
+
+      <Overlay
+        isVisible={showOverlay}
+        onBackdropPress={toggleOverlay}
+        overlayStyle={{
+          backgroundColor: "white",
+          borderRadius: 8,
+          width: "90%",
+        }}
+      >
+        <View style={{ padding: 20 }}>
+          <Text h3>Add Category</Text>
+          <TextInput
+            style={{
+              borderWidth: 1,
+              borderColor: "black",
+              borderRadius: 5,
+              padding: 5,
+              marginVertical: 10,
+            }}
+            placeholder="Enter Category Name"
+            onChange={(e) => {
+              setCategoryName(e.nativeEvent.text);
+            }}
+          />
+
+          <View
+            style={{
+              flexDirection: "row",
+              marginTop: 20,
+              gap: 8,
+            }}
+          >
+            <Button
+              onPress={() => {
+                console.log("Button Pressed");
+              }}
+              containerStyle={{
+                width: "50%",
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onPress={addCategory}
+              containerStyle={{
+                width: "50%",
+              }}
+            >
+              Save
+            </Button>
+          </View>
+        </View>
+      </Overlay>
+
       <FAB
         icon={<Icon name="add" />}
         title="Add a Category"
         placement="right"
-        onPress={() => console.log("Add")}
+        onPress={toggleOverlay}
         color="grey"
       />
     </>
